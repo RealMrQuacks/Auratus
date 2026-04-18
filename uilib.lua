@@ -1307,6 +1307,9 @@ function library:GetConfigs(universal)
 end
 
 function library:Close()
+    services.ContextActionService:UnbindAction("disablekeyboard")
+    services.ContextActionService:UnbindAction("disablemouse")
+
     self.open = not self.open
 
     -- services.InputService.MouseIconEnabled = not self.open and self.mousestate or false
