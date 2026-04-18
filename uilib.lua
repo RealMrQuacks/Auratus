@@ -3359,6 +3359,10 @@ function library:Load(options)
                     set(bool)
                 end
 
+                function toggletypes:GetValue()
+                    return toggled
+                end
+
                 local colorpickers = -1
 
                 function toggletypes:ColorPicker(options)
