@@ -1309,7 +1309,7 @@ end
 function library:Close()
     self.open = not self.open
 
-    services.InputService.MouseIconEnabled = not self.open and self.mousestate or false
+    -- services.InputService.MouseIconEnabled = not self.open and self.mousestate or false
 
     if self.holder then
         self.holder.Visible = self.open
@@ -1420,7 +1420,7 @@ end
 
 function library:Unload()
     services.ContextActionService:UnbindAction("disablekeyboard")
-    services.ContextActionService:UnbindAction("disablemousescroll")
+    services.ContextActionService:UnbindAction("disablemouse")
 
     if self.open then
         library:Close()
@@ -2787,13 +2787,13 @@ function library:Load(options)
         self.extension = extension
     end
 
-    local cursor = utility.create("Triangle", {
-        Thickness = 6,
-        Color = Color3.fromRGB(255, 255, 255),
-        ZIndex = 1000
-    })
+    -- local cursor = utility.create("Triangle", {
+    --     Thickness = 6,
+    --     Color = Color3.fromRGB(255, 255, 255),
+    --     ZIndex = 1000
+    -- })
 
-    self.cursor = cursor
+    -- self.cursor = cursor
 
     -- services.InputService.MouseIconEnabled = false
 
@@ -2836,14 +2836,13 @@ function library:Load(options)
     })
 
     main.MouseEnter:Connect(function()
-        services.ContextActionService:BindActionAtPriority("disableinput", function()
+        services.ContextActionService:BindActionAtPriority("disablemouse", function()
             return Enum.ContextActionResult.Sink
-        end, false, 3000, table.unpack(Enum.UserInputType:GetEnumItems()))
-            
+        end, false, 3000, Enum.UserInputType.MouseWheel, Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2, Enum.UserInputType.MouseButton3)
     end)
 
     main.MouseLeave:Connect(function()
-        services.ContextActionService:UnbindAction("disableinput")
+        services.ContextActionService:UnbindAction("disablemouse")
     end)
 
     local outline = utility.outline(main, "Accent")
