@@ -1,6 +1,8 @@
 --// CUSTOM DRAWING
 
-local drawing = {} do
+local drawing = {} 
+
+do
     local services = setmetatable({}, {
         __index = function(self, key)
             if key == "InputService" then
@@ -2793,16 +2795,16 @@ function library:Load(options)
 
     self.cursor = cursor
 
-    services.InputService.MouseIconEnabled = false
+    -- services.InputService.MouseIconEnabled = false
 
-    utility.connect(services.RunService.RenderStepped, function()
-        if self.open then
-            local mousepos = services.InputService:GetMouseLocation()
-            cursor.PointA = mousepos
-            cursor.PointB = mousepos + Vector2.new(6, 12)
-            cursor.PointC = mousepos + Vector2.new(6, 12)
-        end
-    end)
+    -- utility.connect(services.RunService.RenderStepped, function()
+    --     if self.open then
+    --         local mousepos = services.InputService:GetMouseLocation()
+    --         cursor.PointA = mousepos
+    --         cursor.PointB = mousepos + Vector2.new(6, 12)
+    --         cursor.PointC = mousepos + Vector2.new(6, 12)
+    --     end
+    -- end)
 
     local holder = utility.create("Square", {
         Transparency = 0,
@@ -2834,13 +2836,14 @@ function library:Load(options)
     })
 
     main.MouseEnter:Connect(function()
-        services.ContextActionService:BindActionAtPriority("disablemousescroll", function() 
-            return Enum.ContextActionResult.Sink 
-        end, false, 3000, Enum.UserInputType.MouseWheel)
+        services.ContextActionService:BindActionAtPriority("disableinput", function()
+            return Enum.ContextActionResult.Sink
+        end, false, 3000, table.unpack(Enum.UserInputType:GetEnumItems()))
+            
     end)
 
     main.MouseLeave:Connect(function()
-        services.ContextActionService:UnbindAction("disablemousescroll")
+        services.ContextActionService:UnbindAction("disableinput")
     end)
 
     local outline = utility.outline(main, "Accent")
