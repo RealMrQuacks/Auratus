@@ -110,7 +110,7 @@ function ESP:Add(obj, options)
         PrimaryPart = options.PrimaryPart or obj.ClassName == "Model" and (obj.PrimaryPart or obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")) or obj:IsA("BasePart") and obj,
         Components = {},
         ColorDynamic = options.ColorDynamic,
-        Humanoid = obj:FindFirstChildWhichIsA("Humanoid"),
+        Humanoid = obj:FindFirstChild("Humanoid") or obj:FindFirstChildWhichIsA("Humanoid") or obj.Parent and obj.Parent:FindFirstChildWhichIsA("Humanoid"),
     }, boxBase)
 
     box.Components["Name"] = Draw("Text", {
@@ -138,9 +138,8 @@ function ESP:Add(obj, options)
         end
     end)
 
-    local Humanoid = obj:FindFirstChild("Humanoid") or obj:FindFirstChildWhichIsA("Humanoid")
-    if Humanoid then
-        Humanoid.Died:Connect(function()
+    if box.Humanoid then
+        box.Humanoid.Died:Connect(function()
             box:Remove()
         end)
     end
