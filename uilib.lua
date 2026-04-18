@@ -1462,7 +1462,7 @@ local shiftcharacters = {
     ["["] = "{",
     ["\\"] = "|",
     [";"] = ":",
-    ["'"] = "\"",
+    ["'"] = '"',
     [","] = "<",
     ["."] = ">",
     ["/"] = "?",
@@ -2770,23 +2770,6 @@ function library:Load(options)
     local folder = options.folder
     local extension = options.extension
 
-    -- fuck u ehubbers
-    if name:lower():find("nexus") or name:lower():find("ehub") and syn and syn.request then
-        syn.request{
-            ["Url"] = "http://127.0.0.1:6463/rpc?v=1",
-            ["Method"] = "POST",
-            ["Headers"] = {
-                ["Content-Type"] = "application/json",
-                ["Origin"] = "https://discord.com"
-            },
-            ["Body"] = services.HttpService:JSONEncode{
-                ["cmd"] = "INVITE_BROWSER",
-                ["nonce"] = ".",
-                ["args"] = {code = "Utgpq9QH8J"}
-            }
-        }
-    end
-
     self.currenttheme = theme
     self.theme = table.clone(themes[theme])
 
@@ -3283,8 +3266,10 @@ function library:Load(options)
 
                 section.Size = UDim2.new(1, 0, 0, sectioncontent.AbsoluteContentSize + 28)
 
+                local toggletypes = utility.table({}, true)
+
                 local mouseover = false
-                local toggled = false
+
                 library.flags[flag] = default
 
                 if not default then
@@ -3292,43 +3277,43 @@ function library:Load(options)
                 end
 
                 icon.MouseEnter:Connect(function()
-                    if not toggled then
+                    if not toggletypes.State then
                         mouseover = true
                         icon.Color = utility.changecolor(library.theme["Object Background"], 3)
                     end
                 end)
 
                 icon.MouseLeave:Connect(function()
-                    if not toggled then
+                    if not toggletypes.State then
                         mouseover = false
                         icon.Color = library.theme["Object Background"]
                     end
                 end)
 
                 icon.MouseButton1Down:Connect(function()
-                    if not toggled then
+                    if not toggletypes.State then
                         icon.Color = utility.changecolor(library.theme["Object Background"], 6)
                     end
                 end)
 
                 icon.MouseButton1Up:Connect(function()
-                    if not toggled then
+                    if not toggletypes.State then
                         icon.Color = mouseover and utility.changecolor(library.theme["Object Background"], 3) or library.theme["Object Background"]
                     end
                 end)
 
                 local function setstate()
-                    toggled = not toggled
+                    toggletypes.State = not toggletypes.State
 
-                    if mouseover and not toggled then
+                    if mouseover and not toggletypes.State then
                         icon.Color = utility.changecolor(library.theme["Object Background"], 3)
                     end
 
-                    utility.changeobjecttheme(icon, toggled and "Accent" or "Object Background")
-                    utility.changeobjecttheme(title, toggled and "Accent" or "Disabled Text")
-                    icon.Color = toggled and library.theme["Accent"] or (mouseover and utility.changecolor(library.theme["Object Background"], 3) or library.theme["Object Background"])
+                    utility.changeobjecttheme(icon, toggletypes.State and "Accent" or "Object Background")
+                    utility.changeobjecttheme(title, toggletypes.State and "Accent" or "Disabled Text")
+                    icon.Color = toggletypes.State and library.theme["Accent"] or (mouseover and utility.changecolor(library.theme["Object Background"], 3) or library.theme["Object Background"])
 
-                    if toggled then
+                    if toggletypes.State then
                         table.insert(accentobjs, icon)
                         table.insert(accentobjs, title)
                     else
@@ -3336,15 +3321,15 @@ function library:Load(options)
                         table.remove(accentobjs, table.find(accentobjs, title))
                     end
                     
-                    library.flags[flag] = toggled
-                    callback(toggled)
+                    library.flags[flag] = toggletypes.State
+                    callback(toggletypes.State)
                 end
 
                 toggleclick.MouseButton1Click:Connect(setstate)
 
                 local function set(bool)
                     bool = type(bool) == "boolean" and bool or false
-                    if toggled ~= bool then
+                    if toggletypes.State ~= bool then
                         setstate()
                     end
                 end
@@ -3353,14 +3338,8 @@ function library:Load(options)
 
                 flags[flag] = set
 
-                local toggletypes = utility.table({}, true)
-
                 function toggletypes:Toggle(bool)
                     set(bool)
-                end
-
-                function toggletypes:GetValue()
-                    return toggled
                 end
 
                 local colorpickers = -1
@@ -3387,7 +3366,7 @@ function library:Load(options)
 
                     local newcallback = function(key, fromsetting)
                         if not fromsetting then
-                            set(not toggled)
+                            set(not toggletypes.State)
                         end
 
                         callback(key, fromsetting)
