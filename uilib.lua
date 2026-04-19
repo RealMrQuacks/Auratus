@@ -3334,6 +3334,7 @@ function library:Load(options)
                 toggleclick.MouseButton1Click:Connect(setstate)
 
                 local function set(bool)
+                    print('set with', bool, "and current state", toggletypes.State)
                     if bool == nil then
                         setstate()
                     elseif toggletypes.State ~= bool then
