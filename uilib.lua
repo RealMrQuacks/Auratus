@@ -3272,6 +3272,7 @@ function library:Load(options)
                 section.Size = UDim2.new(1, 0, 0, sectioncontent.AbsoluteContentSize + 28)
 
                 local toggletypes = utility.table({}, true)
+                toggletypes.State = false
 
                 local mouseover = false
 
@@ -3333,8 +3334,9 @@ function library:Load(options)
                 toggleclick.MouseButton1Click:Connect(setstate)
 
                 local function set(bool)
-                    bool = type(bool) == "boolean" and bool or false
-                    if toggletypes.State ~= bool then
+                    if bool == nil then
+                        setstate()
+                    elseif toggletypes.State ~= bool then
                         setstate()
                     end
                 end
