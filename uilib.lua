@@ -1026,7 +1026,9 @@ function utility.table(tbl, usemt)
     if usemt == true then
         setmetatable(tbl, {
             __index = function(t, k)
-                return rawget(t, k:lower()) or rawget(t, k)
+                local v = rawget(t, k:lower())
+                if v ~= nil then return v end
+                return rawget(t, k)
             end,
 
             __newindex = function(t, k, v)
