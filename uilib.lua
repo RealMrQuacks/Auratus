@@ -3342,6 +3342,8 @@ function library:Load(options)
                     end
                 end
 
+                print('default', default)
+
                 set(default)
 
                 flags[flag] = set
