@@ -1480,102 +1480,112 @@ for i = 32, 126 do
     table.insert(allowedcharacters, utf8.char(i))
 end
 
-function library.createbox(box, text, callback, finishedcallback)
-    box.MouseButton1Click:Connect(function()
-        services.ContextActionService:BindActionAtPriority("disablekeyboard", function() return Enum.ContextActionResult.Sink end, false, 3000, Enum.UserInputType.Keyboard)
-        
-        local connection
-        local backspaceconnection
+do
+    local function isctrldown()
+        return services.InputService:IsKeyDown(Enum.KeyCode.LeftControl)
+            or services.InputService:IsKeyDown(Enum.KeyCode.RightControl)
+    end
 
-        local keyqueue = 0
+    function library.createbox(box, text, callback, finishedcallback)
+        box.MouseButton1Click:Connect(function()
+            services.ContextActionService:BindActionAtPriority("disablekeyboard", function() return Enum.ContextActionResult.Sink end, false, 3000, Enum.UserInputType.Keyboard)
 
-        if not connection then
-            connection = utility.connect(services.InputService.InputBegan, function(input)
-                if input.UserInputType == Enum.UserInputType.Keyboard then
-                    if input.KeyCode ~= Enum.KeyCode.Backspace then
-                        local str = services.InputService:GetStringForKeyCode(input.KeyCode)
+            local connection
+            local backspaceconnection
 
-                        if table.find(allowedcharacters, str) then
-                            keyqueue = keyqueue + 1
-                            local currentqueue = keyqueue
-                            
-                            if not services.InputService:IsKeyDown(Enum.KeyCode.RightShift) and not services.InputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                                text.Text = text.Text .. str:lower()
-                                callback(text.Text)
+            local keyqueue = 0
 
-                                local ended = false
+            if not connection then
+                connection = utility.connect(services.InputService.InputBegan, function(input)
+                    if input.UserInputType == Enum.UserInputType.Keyboard then
+                        -- Ctrl+A: clear all text
+                        if input.KeyCode == Enum.KeyCode.A and isctrldown() then
+                            text.Text = ""
+                            callback(text.Text)
+                            return
+                        end
 
-                                coroutine.wrap(function()
-                                    task.wait(0.5)
+                        if input.KeyCode ~= Enum.KeyCode.Backspace then
+                            local str = services.InputService:GetStringForKeyCode(input.KeyCode)
 
-                                    while services.InputService:IsKeyDown(input.KeyCode) and currentqueue == keyqueue  do
-                                        text.Text = text.Text .. str:lower()
-                                        callback(text.Text)
-            
-                                        task.wait(0.02)
-                                    end
-                                end)()
-                            else
-                                text.Text = text.Text .. (shiftcharacters[str] or str:upper())
-                                callback(text.Text)
+                            if table.find(allowedcharacters, str) and not isctrldown() then
+                                keyqueue = keyqueue + 1
+                                local currentqueue = keyqueue
 
-                                coroutine.wrap(function()
-                                    task.wait(0.5)
-                                    
-                                    while services.InputService:IsKeyDown(input.KeyCode) and currentqueue == keyqueue  do
-                                        text.Text = text.Text .. (shiftcharacters[str] or str:upper())
-                                        callback(text.Text)
-            
-                                        task.wait(0.02)
-                                    end
-                                end)()
+                                if not services.InputService:IsKeyDown(Enum.KeyCode.RightShift) and not services.InputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                                    text.Text = text.Text .. str:lower()
+                                    callback(text.Text)
+
+                                    coroutine.wrap(function()
+                                        task.wait(0.5)
+                                        while services.InputService:IsKeyDown(input.KeyCode) and currentqueue == keyqueue do
+                                            text.Text = text.Text .. str:lower()
+                                            callback(text.Text)
+                                            task.wait(0.02)
+                                        end
+                                    end)()
+                                else
+                                    text.Text = text.Text .. (shiftcharacters[str] or str:upper())
+                                    callback(text.Text)
+
+                                    coroutine.wrap(function()
+                                        task.wait(0.5)
+                                        while services.InputService:IsKeyDown(input.KeyCode) and currentqueue == keyqueue do
+                                            text.Text = text.Text .. (shiftcharacters[str] or str:upper())
+                                            callback(text.Text)
+                                            task.wait(0.02)
+                                        end
+                                    end)()
+                                end
                             end
                         end
-                    end
 
-                    if input.KeyCode == Enum.KeyCode.Return then
+                        if input.KeyCode == Enum.KeyCode.Return then
+                            services.ContextActionService:UnbindAction("disablekeyboard")
+                            utility.disconnect(backspaceconnection)
+                            utility.disconnect(connection)
+                            finishedcallback(text.Text)
+                        end
+                    elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
                         services.ContextActionService:UnbindAction("disablekeyboard")
                         utility.disconnect(backspaceconnection)
                         utility.disconnect(connection)
                         finishedcallback(text.Text)
                     end
-                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    services.ContextActionService:UnbindAction("disablekeyboard")
-                    utility.disconnect(backspaceconnection)
-                    utility.disconnect(connection)
-                    finishedcallback(text.Text)
-                end
-            end)
+                end)
 
-            local backspacequeue = 0
+                local backspacequeue = 0
 
-            backspaceconnection = utility.connect(services.InputService.InputBegan, function(input)
-                if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Backspace then
-                    backspacequeue = backspacequeue + 1
-                    
-                    text.Text = text.Text:sub(1, -2)
-                    callback(text.Text)
-
-                    local currentqueue = backspacequeue
-
-                    coroutine.wrap(function()
-                        task.wait(0.5)
-
-                        if backspacequeue == currentqueue then
-                            while services.InputService:IsKeyDown(Enum.KeyCode.Backspace) do
-                                text.Text = text.Text:sub(1, -2)
-                                callback(text.Text)
-
-                                task.wait(0.02)
-                            end
+                backspaceconnection = utility.connect(services.InputService.InputBegan, function(input)
+                    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Backspace then
+                        if isctrldown() then
+                            text.Text = ""
+                            callback(text.Text)
+                            return
                         end
-                    end)()
-                end
-            end)
-        end
-    end)
-end
 
+                        backspacequeue = backspacequeue + 1
+                        text.Text = text.Text:sub(1, -2)
+                        callback(text.Text)
+
+                        local currentqueue = backspacequeue
+
+                        coroutine.wrap(function()
+                            task.wait(0.5)
+                            if backspacequeue == currentqueue then
+                                while services.InputService:IsKeyDown(Enum.KeyCode.Backspace) do
+                                    text.Text = text.Text:sub(1, -2)
+                                    callback(text.Text)
+                                    task.wait(0.02)
+                                end
+                            end
+                        end)()
+                    end
+                end)
+            end
+        end)
+    end
+end
 function library.createdropdown(holder, content, flag, callback, default, max, scrollable, scrollingmax, islist, section, sectioncontent)
     local dropdown = utility.create("Square", {
         Filled = true,
