@@ -1550,7 +1550,6 @@ do
                         services.ContextActionService:UnbindAction("disablekeyboard")
                         utility.disconnect(backspaceconnection)
                         utility.disconnect(connection)
-                        finishedcallback(text.Text)
                     end
                 end)
 
